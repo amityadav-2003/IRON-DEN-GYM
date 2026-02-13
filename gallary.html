@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Grid Gallery | Ajay's Iron Den</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Oswald:wght@400;600;700&family=Black+Ops+One&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --card-bg: rgba(26, 26, 26, 0.7);
+            --accent-color: #ff0000;
+            --text-color: #ffffff;
+            --overlay-color: rgba(0, 0, 0, 0.95);
+            --border-radius: 8px;
+            --spacing: 12px;
+            --transition-speed: 0.3s;
+            --font-family: 'Montserrat', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND VIDEO CSS --- */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.25) contrast(1.1); /* Darken to ensure readability */
+        }
+
+        /* Gradient overlay to hide video edges and soften center */
+        .video-background::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 20%, #000 100%);
+            opacity: 0.8;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .top-bar {
+            padding: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+        }
+
+        .logo {
+            font-family: 'Black Ops One', cursive;
+            font-size: 1.6rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .logo span, .logo i { color: var(--accent-color); }
+
+        header {
+            padding: 60px 15px 30px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        header h1 {
+            font-family: 'Black Ops One', cursive;
+            font-size: 3.5rem;
+            letter-spacing: 2px;
+            color: var(--text-color);
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        header p {
+            color: #aaa;
+            font-size: 1rem;
+            font-family: 'Oswald', sans-serif;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* --- MASONRY GRID --- */
+        .gallery-container {
+            padding: var(--spacing);
+            max-width: 1400px;
+            margin: 0 auto 100px;
+            column-count: 4;
+            column-gap: var(--spacing);
+        }
+
+        @media (max-width: 1100px) { .gallery-container { column-count: 3; } }
+        @media (max-width: 768px) {
+            .gallery-container { column-count: 2; padding: 8px; column-gap: 8px; }
+            header h1 { font-size: 2rem; }
+        }
+
+        .gallery-item {
+            break-inside: avoid;
+            margin-bottom: var(--spacing);
+            position: relative;
+            cursor: pointer;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background-color: var(--card-bg);
+            transition: all var(--transition-speed) ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
+            z-index: 5;
+        }
+
+        .gallery-item img, .gallery-item video {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            filter: grayscale(40%);
+            transition: 0.4s ease;
+        }
+
+        .gallery-item:hover img, .gallery-item:hover video { filter: grayscale(0%); }
+
+        .item-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent 50%, rgba(255, 0, 0, 0.7));
+            opacity: 0;
+            transition: opacity var(--transition-speed);
+            display: flex;
+            align-items: flex-end;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .gallery-item:hover .item-overlay { opacity: 1; }
+
+        .video-indicator {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        /* --- MODAL --- */
+        .modal {
+            position: fixed; inset: 0;
+            background-color: var(--overlay-color);
+            display: none; justify-content: center; align-items: center;
+            z-index: 2000; padding: 20px;
+            backdrop-filter: blur(15px); opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal.active { display: flex; opacity: 1; }
+
+        .modal-content {
+            position: relative; max-width: 100%; max-height: 90vh;
+            transform: scale(0.9); transition: 0.3s;
+        }
+
+        .modal.active .modal-content { transform: scale(1); }
+
+        .modal-content img, .modal-content video {
+            max-width: 100%; max-height: 80vh;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            position: absolute; top: -20px; right: -20px;
+            width: 44px; height: 44px;
+            background-color: var(--accent-color);
+            color: white; border: none; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; font-size: 24px; font-weight: bold;
+        }
+
+        @media (max-width: 600px) { .close-btn { top: -60px; right: 0; } }
+
+        body.modal-open { overflow: hidden; }
+    </style>
+</head>
+<body>
+
+    <!-- Background Video Wrapper -->
+    <!-- <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="lv_0_20260213174704.mp4" type="video/mp4">
+        </video>
+    </div> -->
+
+    <div class="top-bar">
+        <a href="index.html" class="logo">
+            <i class="fa-solid fa-dumbbell"></i>
+            <div>AJAY'S <span>IRON DEN</span></div>
+        </a>
+    </div>
+
+    <header>
+        <h1>POWER GRID</h1>
+        <p>VISUAL INSPIRATION. REAL RESULTS. PURE IRON.</p>
+    </header>
+
+    <main class="gallery-container" id="gallery"></main>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content" id="modalContent">
+            <button class="close-btn" id="closeModal">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        const galleryData = [
+            { type: 'video', url: 'lv_0_20260213174704.mp4', title: 'GYM TOUR' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800', title: 'Heavy Deads' },
+            { type: 'video', url: 'https://v.ftcdn.net/02/10/71/34/700_F_210713437_m7r0yB3wLshn1XzD3N3D3mG7bO9v2XG5_ST.mp4', title: 'Explosive Power' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800', title: 'Iron Paradise' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1583454110551-21f2fa2adfcd?auto=format&fit=crop&q=80&w=800', title: 'The Grind' },
+            { type: 'video', url: 'https://v.ftcdn.net/05/65/37/10/700_F_565371079_mN7j4tLpA5D8rD1hD2N3E5A8zF1G2H3I_ST.mp4', title: 'Technique Work' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?auto=format&fit=crop&q=80&w=800', title: 'Focus' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=800', title: 'Determination' },
+            { type: 'video', url: 'https://v.ftcdn.net/05/73/45/63/700_F_573456382_wM7H4pLpA5D8rD1hD2N3E5A8zF1G2H3I_ST.mp4', title: 'Speed Kills' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1574673139641-87b18f02f620?auto=format&fit=crop&q=80&w=800', title: 'Recovery' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?auto=format&fit=crop&q=80&w=800', title: 'Classic Iron' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1518481612222-68bbe828eba1?auto=format&fit=crop&q=80&w=800', title: 'No Days Off' }
+        ];
+
+        const galleryElement = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modalContent');
+        const closeModalBtn = document.getElementById('closeModal');
+
+        function initGallery() {
+            galleryData.forEach((item) => {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+
+                let icon = '';
+                if (item.type === 'video') {
+                    icon = `
+                        <div class="video-indicator">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    `;
+                }
+
+                galleryItem.innerHTML = `
+                    ${item.type === 'image'
+                        ? `<img src="${item.url}" alt="${item.title}" loading="lazy">`
+                        : `<video src="${item.url}" muted loop playsinline preload="metadata"></video>`
+                    }
+                    ${icon}
+                    <div class="item-overlay"><span>${item.title}</span></div>
+                `;
+
+                if (item.type === 'video') {
+                    const video = galleryItem.querySelector('video');
+                    galleryItem.addEventListener('mouseenter', () => video.play());
+                    galleryItem.addEventListener('mouseleave', () => {
+                        video.pause();
+                        video.currentTime = 0;
+                    });
+                }
+
+                galleryItem.addEventListener('click', () => openModal(item));
+                galleryElement.appendChild(galleryItem);
+            });
+        }
+
+        function openModal(item) {
+            const existingMedia = modalContent.querySelector('img, video');
+            if (existingMedia) existingMedia.remove();
+
+            let media;
+            if (item.type === 'image') {
+                media = document.createElement('img');
+                media.src = item.url;
+            } else {
+                media = document.createElement('video');
+                media.src = item.url;
+                media.controls = true;
+                media.autoplay = true;
+            }
+
+            modalContent.prepend(media);
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            const video = modalContent.querySelector('video');
+            if (video) video.pause();
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        document.addEventListener('DOMContentLoaded', initGallery);
+    </script>
+</body>
+</html>
